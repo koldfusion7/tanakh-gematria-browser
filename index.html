@@ -461,6 +461,18 @@
                 <div class="advanced-buttons">
                     <button class="btn" onclick="openMiluiDialog()">Milui Settings</button>
                     <button class="btn" onclick="clearSelection()">Clear Selection</button>
+                    <!-- Transformation controls: apply letter-substitution ciphers to displayed text -->
+                    <div style="margin-top:10px;">
+                        <select id="transformSelect" title="Select a letter-substitution cipher to apply">
+                            <option value="none">No transformation</option>
+                            <option value="atbash">Atbash</option>
+                            <option value="albam">Albam</option>
+                            <option value="achbi">AchBi</option>
+                            <option value="avgad">Avgad</option>
+                            <option value="reverse_avgad">Reverse Avgad</option>
+                        </select>
+                        <button class="btn" style="margin-left:5px;" onclick="applyTransformation()">Apply Transform</button>
+                    </div>
                 </div>
 
                 <div class="method-groups">
@@ -746,6 +758,13 @@
                 }
             },
 
+            // Reverse Avgad mapping (letter to previous letter, wrapping around)
+            reverseAvgadMap: {
+                'א': 'ת', 'ב': 'א', 'ג': 'ב', 'ד': 'ג', 'ה': 'ד', 'ו': 'ה', 'ז': 'ו', 'ח': 'ז', 'ט': 'ח',
+                'י': 'ט', 'כ': 'י', 'ל': 'כ', 'מ': 'ל', 'נ': 'מ', 'ס': 'נ', 'ע': 'ס', 'פ': 'ע', 'צ': 'פ',
+                'ק': 'צ', 'ר': 'ק', 'ש': 'ר', 'ת': 'ש', 'ך': 'כ', 'ם': 'מ', 'ן': 'נ', 'ף': 'פ', 'ץ': 'צ'
+            },
+
             // Milui (letter spellings)
             milui: {
                 defaults: {
@@ -801,6 +820,7 @@
                     case 'albam':
                     case 'achbi':
                     case 'avgad':
+                    case 'reverse_avgad':
                         return this.calculateTransform(letters, method);
                     
                     case 'kolel':
@@ -909,9 +929,17 @@
             },
 
             calculateTransform(letters, transform) {
+                // Special handling for reverse_avgad: use reverseAvgadMap
                 let transformed = '';
-                for (let letter of letters) {
-                    transformed += this.transforms[transform][letter] || letter;
+                if (transform === 'reverse_avgad') {
+                    for (let letter of letters) {
+                        transformed += this.reverseAvgadMap[letter] || letter;
+                    }
+                } else {
+                    for (let letter of letters) {
+                        const map = this.transforms[transform];
+                        transformed += (map && map[letter]) ? map[letter] : letter;
+                    }
                 }
                 return this.simpleSum(transformed, this.values.hechrachi);
             },
@@ -941,6 +969,34 @@
                     sum += letterValue * (letters.length - i);
                 }
                 return sum;
+            },
+
+            /**
+             * Apply a letter-substitution cipher to a string. Returns the transformed string.
+             * If transformName is 'none' or not provided, returns the original text.
+             * Supported transformations are defined in this.transforms (e.g. atbash, albam, achbi, avgad)
+             * and reverseAvgadMap for reverse Avgad (maps to previous letter).
+             * @param {string} text Input string
+             * @param {string} transformName Name of the transformation ('atbash', 'albam', 'achbi', 'avgad', 'reverse_avgad')
+             * @returns {string} The transformed string
+             */
+            applyTransform(text, transformName) {
+                if (!text || !transformName || transformName === 'none') return text;
+                let result = '';
+                // Remove non-Hebrew characters for transformation
+                const letters = this.getLettersOnly(text);
+                for (let i = 0; i < letters.length; i++) {
+                    const ch = letters[i];
+                    let newChar;
+                    if (transformName === 'reverse_avgad') {
+                        newChar = this.reverseAvgadMap[ch] || ch;
+                    } else {
+                        const map = this.transforms[transformName];
+                        newChar = map && map[ch] ? map[ch] : ch;
+                    }
+                    result += newChar;
+                }
+                return result;
             }
         };
 
@@ -1006,6 +1062,8 @@
         let currentVerse = 1;
         let selectedTokens = new Set();
         let multiSelectMode = false;
+        // Currently selected transformation (letter-substitution cipher)
+        let currentTransform = 'none';
 
         // Initialize
         GematriaEngine.init();
@@ -1025,15 +1083,22 @@
                 span.dataset.word = token.t;
                 
                 // Choose display text based on mode
+                // Determine base text for this token based on display mode
+                let baseText;
                 if (displayMode === 'letters') {
-                    span.textContent = token.t;
+                    baseText = token.t;
                 } else if (displayMode === 'no-trope') {
-                    // For demo, use letters only
-                    span.textContent = token.t;
+                    // For this demo, we only have letters-only data
+                    baseText = token.t;
                 } else {
-                    // For demo, use letters only
-                    span.textContent = token.t;
+                    baseText = token.t;
                 }
+                // Apply transformation if selected
+                let displayText = baseText;
+                if (currentTransform && currentTransform !== 'none') {
+                    displayText = GematriaEngine.applyTransform(baseText, currentTransform);
+                }
+                span.textContent = displayText;
                 
                 if (selectedTokens.has(index)) {
                     span.classList.add('selected');
@@ -1159,6 +1224,7 @@
                 albam: 'Albam',
                 achbi: 'Achbi',
                 avgad: 'Avgad',
+                reverse_avgad: 'Reverse Avgad',
                 kolel: 'Kolel (+Words)',
                 musafi: 'Musafi (+Letters)',
                 klali: 'Klali (Squared Sum)',
@@ -1207,28 +1273,57 @@
             
             resultsHtml += '</tbody></table>';
             
-            // Display in a temporary div or alert
+            // Display results in a temporary modal
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = resultsHtml;
-            tempDiv.style.position = 'fixed';
-            tempDiv.style.top = '50%';
-            tempDiv.style.left = '50%';
-            tempDiv.style.transform = 'translate(-50%, -50%)';
-            tempDiv.style.background = 'white';
-            tempDiv.style.padding = '20px';
-            tempDiv.style.borderRadius = '10px';
-            tempDiv.style.boxShadow = '0 10px 30px rgba(0,0,0,0.3)';
-            tempDiv.style.zIndex = '2000';
-            tempDiv.style.maxHeight = '70vh';
-            tempDiv.style.overflow = 'auto';
-            
+            Object.assign(tempDiv.style, {
+                position: 'fixed',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                background: 'white',
+                padding: '20px',
+                borderRadius: '10px',
+                boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
+                zIndex: 2000,
+                maxHeight: '70vh',
+                overflow: 'auto'
+            });
             const closeBtn = document.createElement('button');
             closeBtn.textContent = 'Close';
             closeBtn.className = 'btn';
             closeBtn.onclick = () => document.body.removeChild(tempDiv);
             tempDiv.appendChild(closeBtn);
-            
             document.body.appendChild(tempDiv);
+
+            // Also display the input text in the verse display area so users can apply transforms to it
+            const verseDisplay = document.getElementById('verseDisplay');
+            verseDisplay.innerHTML = '';
+            const words = input.trim().split(/\s+/);
+            words.forEach((word, idx) => {
+                const span = document.createElement('span');
+                span.className = 'word-token';
+                span.dataset.index = idx;
+                span.dataset.word = word;
+                // Apply transformation if selected
+                let displayWord = word;
+                if (currentTransform && currentTransform !== 'none') {
+                    displayWord = GematriaEngine.applyTransform(word, currentTransform);
+                }
+                span.textContent = displayWord;
+                verseDisplay.appendChild(span);
+            });
+        }
+
+        /**
+         * Apply a letter-substitution cipher transformation to the currently displayed verse or typed input.
+         * The transformation is selected via the #transformSelect dropdown. Updates the UI accordingly.
+         */
+        function applyTransformation() {
+            const select = document.getElementById('transformSelect');
+            currentTransform = select ? select.value : 'none';
+            // Re-render verse display to show transformed text
+            renderVerse();
         }
 
         // Milui dialog functions
