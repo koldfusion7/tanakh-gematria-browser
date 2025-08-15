@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tanakh Gematria Browser</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 300px 1fr 350px;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        /* Left Panel */
+        .left-panel {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .nav-controls {
+            margin-bottom: 20px;
+        }
+
+        .nav-controls select {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .options-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .options-section h3 {
+            margin-bottom: 10px;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .display-modes {
+            margin: 10px 0;
+        }
+
+        .display-modes label {
+            display: block;
+            margin: 5px 0;
+            cursor: pointer;
+        }
+
+        .advanced-buttons {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .btn {
+            padding: 8px 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .method-groups {
+            margin-top: 20px;
+        }
+
+        .method-group {
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .method-group h4 {
+            margin-bottom: 8px;
+            color: #555;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .method-checkbox {
+            display: block;
+            margin: 5px 0;
+            font-size: 13px;
+        }
+
+        .method-checkbox input {
+            margin-right: 5px;
+        }
+
+        /* Center Panel */
+        .center-panel {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            direction: rtl;
+        }
+
+        .verse-display {
+            font-size: 28px;
+            line-height: 1.8;
+            font-family: 'Frank Ruhl Libre', serif;
+            text-align: justify;
+            margin: 20px 0;
+            min-height: 200px;
+        }
+
+        .word-token {
+            display: inline-block;
+            padding: 5px 8px;
+            margin: 3px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .word-token:hover {
+            background: #e3f2fd;
+            transform: scale(1.05);
+        }
+
+        .word-token.selected {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .verse-info {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #666;
+            font-size: 18px;
+        }
+
+        .selection-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        /* Right Panel */
+        .right-panel {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .results-section {
+            margin-bottom: 20px;
+        }
+
+        .results-section h3 {
+            margin-bottom: 10px;
+            color: #333;
+            font-size: 16px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 5px;
+        }
+
+        .gematria-table {
+            width: 100%;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .gematria-table th,
+        .gematria-table td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+
+        .gematria-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+        }
+
+        .gematria-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .value-cell {
+            font-weight: 600;
+            color: #764ba2;
+            text-align: right;
+        }
+
+        /* Search/Calculate Box */
+        .search-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .search-input:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+
+        /* Milui Dialog */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: slideIn 0.3s;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .modal-header h2 {
+            color: #333;
+        }
+
+        .close-modal {
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+            transition: color 0.2s;
+        }
+
+        .close-modal:hover {
+            color: #333;
+        }
+
+        .milui-options {
+            display: grid;
+            gap: 15px;
+        }
+
+        .milui-letter {
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .milui-letter h4 {
+            margin-bottom: 8px;
+            color: #555;
+            font-size: 18px;
+        }
+
+        .milui-choice {
+            margin: 5px 0;
+        }
+
+        .milui-choice label {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .multi-select-toggle label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .multi-select-toggle {
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+        }
+
+        .multi-select-toggle label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 250px 1fr 300px;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .left-panel, .right-panel {
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📖 Tanakh Gematria Browser</h1>
+            <p>Instant gematria values for every word and verse</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Left Panel -->
+            <div class="left-panel">
+                <div class="nav-controls">
+                    <select id="bookSelect">
+                        <option value="genesis">Genesis</option>
+                        <option value="exodus">Exodus</option>
+                        <option value="leviticus">Leviticus</option>
+                        <option value="numbers">Numbers</option>
+                        <option value="deuteronomy">Deuteronomy</option>
+                    </select>
+                    <select id="chapterSelect">
+                        <option value="1">Chapter 1</option>
+                        <option value="2">Chapter 2</option>
+                    </select>
+                    <select id="verseSelect">
+                        <option value="1">Verse 1</option>
+                        <option value="2">Verse 2</option>
+                        <option value="3">Verse 3</option>
+                    </select>
+                </div>
+
+                <div class="options-section">
+                    <h3>Display Options</h3>
+                    <div class="display-modes">
+                        <label>
+                            <input type="radio" name="displayMode" value="letters" checked>
+                            Letters only
+                        </label>
+                        <label>
+                            <input type="radio" name="displayMode" value="no-trope">
+                            Without cantillation
+                        </label>
+                        <label>
+                            <input type="radio" name="displayMode" value="raw">
+                            Full text
+                        </label>
+                    </div>
+                </div>
+
+                <div class="multi-select-toggle">
+                    <label>
+                        <input type="checkbox" id="multiSelectMode">
+                        Multi-select mode
+                    </label>
+                </div>
+
+                <div class="advanced-buttons">
+                    <button class="btn" onclick="openMiluiDialog()">Milui Settings</button>
+                    <button class="btn" onclick="clearSelection()">Clear Selection</button>
+                </div>
+
+                <div class="method-groups">
+                    <div class="method-group">
+                        <h4>
+                            Standard Methods
+                            <span>
+                                <a href="#" onclick="toggleGroup('standard', true); return false;">All</a> |
+                                <a href="#" onclick="toggleGroup('standard', false); return false;">None</a>
+                            </span>
+                        </h4>
+                        <label class="method-checkbox">
+                            <input type="checkbox" value="hechrachi" checked> Hechrachi (Standard)
+                        </label>
+                        <label class="method-checkbox">
+                            <input type="checkbox" value="gadol" checked> Gadol (Large)
+                        </label>
+                        <label class="method-checkbox">
+                            <input type="checkbox" value="siduri" checked> Siduri (Ordinal)
+                        </label>
+                        <label class="method-checkbox">
+                            <input type="checkbox" value="katan" checked> Katan (Small)
+                        </label>
+                        <label class="method-checkbox">
+                            <input type="checkbox" value="perati"> Perati (Squared)
+                        </label>
+                        <label class="method-checkbox">
+                            <input type="checkbox" value="meshulash"> Meshulash (Cubed)
+                        </label>
+                        <label class="method-checkbox">
+                            <input type="checkbox" value="kidmi"> Kidmi (Triangular)
+                        </label>
+                        <label class="method-checkbox">
+                            <input type="checkbox" value="mispari"> Mispari (Spelled)
+                        </label>
+                        <label class="method-checkbox">
+                            <input type="checkbox" value="boneh"> Bone'eh (Building)
+                        </label>
+                    </div>
+
+                    <div class="method-group">
+                        <h4>
+                            Milui Methods
+                            <span>
+                                <a href="#" onclick="toggleGroup('milui', true); return false;">All</a> |
+                                <a href="#" onclick="toggleGroup('milui', false); return false;">None</a>
+                            </span>
+                        </h4>
+                        <label class="method-checkbox">
+                            <input type="checkbox" value="shemi"> Shemi (Letter Names)
+                        </label>
+                        <label class="method-checkbox">
+                            <input type="checkbox" value="neelam"> Ne'elam (Hidden)
+                        </label>
+                        <label class="method-checkbox">
+                            <input type="checkbox" value="ofanim"> Ofanim (Endings)
+                        </label>
+                    </div>
+
+                    <div class="method-group">
+                        <h4>
+                            Transformations
+                            <span>
+                                <a href="#" onclick="toggleGroup('transform', true); return false;">All</a> |
+                                <a href="#" onclick="toggleGroup('transform', false); return false;">None</a>
+                            </span>
+                        </h4>
+                        <label class="method-checkbox">
+                            <input type="checkbox" value="atbash"> Atbash
+                        </label>
+                        <label class="method-checkbox">
+                            <input type="checkbox" value="albam"> Albam
+                        </label>
+                        <label class="method-checkbox">
+                            <input type="checkbox" value="achbi"> Achbi
+                        </label>
+                        <label class="method-checkbox">
+                            <input type="checkbox" value="avgad"> Avgad
+                        </label>
+                    </div>
+
+                    <div class="method-group">
+                        <h4>
+                            Live Methods
+                            <span>
+                                <a href="#" onclick="toggleGroup('live', true); return false;">All</a> |
+                                <a href="#" onclick="toggleGroup('live', false); return false;">None</a>
+                            </span>
+                        </h4>
+                        <label class="method-checkbox">
+                            <input type="checkbox" value="kolel"> Kolel (+Words)
+                        </label>
+                        <label class="method-checkbox">
+                            <input type="checkbox" value="musafi"> Musafi (+Letters)
+                        </label>
+                        <label class="method-checkbox">
+                            <input type="checkbox" value="klali"> Klali (Squared Sum)
+                        </label>
+                        <label class="method-checkbox">
+                            <input type="checkbox" value="haachor"> Ha'achor (Positional)
+                        </label>
+                    </div>
+                </div>
+
+                <div class="search-section">
+                    <h3>Live Calculation</h3>
+                    <input type="text" class="search-input" id="calculateInput" placeholder="Enter word or phrase...">
+                    <button class="btn" onclick="calculateLive()">Calculate</button>
+                </div>
+            </div>
+
+            <!-- Center Panel -->
+            <div class="center-panel">
+                <div class="verse-info">
+                    <strong>Genesis Chapter 1, Verse 1</strong>
+                </div>
+                <div class="verse-display" id="verseDisplay">
+                    <!-- Verse will be rendered here -->
+                </div>
+                <div class="selection-controls">
+                    <button class="btn" onclick="selectAll()">Select All</button>
+                    <button class="btn" onclick="clearSelection()">Clear Selection</button>
+                </div>
+            </div>
+
+            <!-- Right Panel -->
+            <div class="right-panel">
+                <div class="results-section">
+                    <h3>Selection Summary</h3>
+                    <table class="gematria-table" id="selectionTable">
+                        <thead>
+                            <tr>
+                                <th>Method</th>
+                                <th>Value</th>
+                            </tr>
+                        </thead>
+                        <tbody id="selectionResults">
+                            <!-- Results will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="results-section">
+                    <h3>Word Details</h3>
+                    <table class="gematria-table" id="wordDetailsTable">
+                        <thead>
+                            <tr>
+                                <th>Word</th>
+                                <th>Hechrachi Value</th>
+                            </tr>
+                        </thead>
+                        <tbody id="wordDetails">
+                            <!-- Word details will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Milui Dialog -->
+    <div id="miluiModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Milui (Letter Spelling) Settings</h2>
+                <span class="close-modal" onclick="closeMiluiDialog()">&times;</span>
+            </div>
+            <div class="milui-options">
+                <div class="milui-letter">
+                    <h4>א - Alef</h4>
+                    <div class="milui-choice">
+                        <label><input type="radio" name="milui_alef" value="אלף" checked> אלף (111)</label>
+                    </div>
+                </div>
+                <div class="milui-letter">
+                    <h4>ב - Bet</h4>
+                    <div class="milui-choice">
+                        <label><input type="radio" name="milui_bet" value="בית" checked> בית (412)</label>
+                    </div>
+                    <div class="milui-choice">
+                        <label><input type="radio" name="milui_bet" value="בת"> בת (402)</label>
+                    </div>
+                </div>
+                <div class="milui-letter">
+                    <h4>ג - Gimel</h4>
+                    <div class="milui-choice">
+                        <label><input type="radio" name="milui_gimel" value="גימל" checked> גימל (73)</label>
+                    </div>
+                    <div class="milui-choice">
+                        <label><input type="radio" name="milui_gimel" value="גמל"> גמל (73)</label>
+                    </div>
+                </div>
+                <div class="milui-letter">
+                    <h4>ה - Heh</h4>
+                    <div class="milui-choice">
+                        <label><input type="radio" name="milui_heh" value="הא" checked> הא (6)</label>
+                    </div>
+                    <div class="milui-choice">
+                        <label><input type="radio" name="milui_heh" value="הי"> הי (15)</label>
+                    </div>
+                    <div class="milui-choice">
+                        <label><input type="radio" name="milui_heh" value="הה"> הה (10)</label>
+                    </div>
+                </div>
+                <div class="milui-letter">
+                    <h4>ו - Vav</h4>
+                    <div class="milui-choice">
+                        <label><input type="radio" name="milui_vav" value="וו" checked> וו (12)</label>
+                    </div>
+                    <div class="milui-choice">
+                        <label><input type="radio" name="milui_vav" value="ויו"> ויו (22)</label>
+                    </div>
+                    <div class="milui-choice">
+                        <label><input type="radio" name="milui_vav" value="ואו"> ואו (13)</label>
+                    </div>
+                </div>
+            </div>
+            <div style="margin-top: 20px; text-align: center;">
+                <button class="btn" onclick="applyMiluiSettings()">Apply</button>
+                <button class="btn" onclick="resetMiluiDefaults()">Reset to Defaults</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Gematria Engine
+        const GematriaEngine = {
+            // Letter value tables
+            values: {
+                hechrachi: {
+                    'א': 1, 'ב': 2, 'ג': 3, 'ד': 4, 'ה': 5, 'ו': 6, 'ז': 7, 'ח': 8, 'ט': 9,
+                    'י': 10, 'כ': 20, 'ך': 20, 'ל': 30, 'מ': 40, 'ם': 40, 'נ': 50, 'ן': 50,
+                    'ס': 60, 'ע': 70, 'פ': 80, 'ף': 80, 'צ': 90, 'ץ': 90, 'ק': 100, 'ר': 200,
+                    'ש': 300, 'ת': 400
+                },
+                gadol: {
+                    'א': 1, 'ב': 2, 'ג': 3, 'ד': 4, 'ה': 5, 'ו': 6, 'ז': 7, 'ח': 8, 'ט': 9,
+                    'י': 10, 'כ': 20, 'ך': 500, 'ל': 30, 'מ': 40, 'ם': 600, 'נ': 50, 'ן': 700,
+                    'ס': 60, 'ע': 70, 'פ': 80, 'ף': 800, 'צ': 90, 'ץ': 900, 'ק': 100, 'ר': 200,
+                    'ש': 300, 'ת': 400
+                },
+                siduri: {
+                    'א': 1, 'ב': 2, 'ג': 3, 'ד': 4, 'ה': 5, 'ו': 6, 'ז': 7, 'ח': 8, 'ט': 9,
+                    'י': 10, 'כ': 11, 'ך': 11, 'ל': 12, 'מ': 13, 'ם': 13, 'נ': 14, 'ן': 14,
+                    'ס': 15, 'ע': 16, 'פ': 17, 'ף': 17, 'צ': 18, 'ץ': 18, 'ק': 19, 'ר': 20,
+                    'ש': 21, 'ת': 22
+                },
+                katan: {
+                    'א': 1, 'ב': 2, 'ג': 3, 'ד': 4, 'ה': 5, 'ו': 6, 'ז': 7, 'ח': 8, 'ט': 9,
+                    'י': 1, 'כ': 2, 'ך': 2, 'ל': 3, 'מ': 4, 'ם': 4, 'נ': 5, 'ן': 5,
+                    'ס': 6, 'ע': 7, 'פ': 8, 'ף': 8, 'צ': 9, 'ץ': 9, 'ק': 1, 'ר': 2,
+                    'ש': 3, 'ת': 4
+                },
+                mispari: {
+                    'א': 13, 'ב': 760, 'ג': 636, 'ד': 273, 'ה': 348, 'ו': 322, 'ז': 372, 'ח': 401, 'ט': 770,
+                    'י': 570, 'כ': 620, 'ך': 620, 'ל': 686, 'מ': 280, 'ם': 280, 'נ': 348, 'ן': 348,
+                    'ס': 720, 'ע': 422, 'פ': 446, 'ף': 446, 'צ': 720, 'ץ': 720, 'ק': 186, 'ר': 580,
+                    'ש': 930, 'ת': 1000
+                }
+            },
+
+            // Transformation tables
+            transforms: {
+                atbash: {
+                    'א': 'ת', 'ב': 'ש', 'ג': 'ר', 'ד': 'ק', 'ה': 'צ', 'ו': 'פ', 'ז': 'ע', 'ח': 'ס', 'ט': 'נ',
+                    'י': 'מ', 'כ': 'ל', 'ל': 'כ', 'מ': 'י', 'נ': 'ט', 'ס': 'ח', 'ע': 'ז', 'פ': 'ו', 'צ': 'ה',
+                    'ק': 'ד', 'ר': 'ג', 'ש': 'ב', 'ת': 'א', 'ך': 'ל', 'ם': 'י', 'ן': 'ט', 'ף': 'ו', 'ץ': 'ה'
+                },
+                albam: {
+                    'א': 'ל', 'ב': 'מ', 'ג': 'נ', 'ד': 'ס', 'ה': 'ע', 'ו': 'פ', 'ז': 'צ', 'ח': 'ק', 'ט': 'ר',
+                    'י': 'ש', 'כ': 'ת', 'ל': 'א', 'מ': 'ב', 'נ': 'ג', 'ס': 'ד', 'ע': 'ה', 'פ': 'ו', 'צ': 'ז',
+                    'ק': 'ח', 'ר': 'ט', 'ש': 'י', 'ת': 'כ', 'ך': 'ת', 'ם': 'ב', 'ן': 'ג', 'ף': 'ו', 'ץ': 'ז'
+                },
+                achbi: {
+                    'א': 'כ', 'ב': 'י', 'ג': 'ט', 'ד': 'ח', 'ה': 'ז', 'ו': 'ו', 'ז': 'ה', 'ח': 'ד', 'ט': 'ג',
+                    'י': 'ב', 'כ': 'א', 'ל': 'ת', 'מ': 'ש', 'נ': 'ר', 'ס': 'ק', 'ע': 'צ', 'פ': 'פ', 'צ': 'ע',
+                    'ק': 'ס', 'ר': 'נ', 'ש': 'מ', 'ת': 'ל', 'ך': 'א', 'ם': 'ש', 'ן': 'ר', 'ף': 'פ', 'ץ': 'ע'
+                },
+                avgad: {
+                    'א': 'ב', 'ב': 'ג', 'ג': 'ד', 'ד': 'ה', 'ה': 'ו', 'ו': 'ז', 'ז': 'ח', 'ח': 'ט', 'ט': 'י',
+                    'י': 'כ', 'כ': 'ל', 'ל': 'מ', 'מ': 'נ', 'נ': 'ס', 'ס': 'ע', 'ע': 'פ', 'פ': 'צ', 'צ': 'ק',
+                    'ק': 'ר', 'ר': 'ש', 'ש': 'ת', 'ת': 'א', 'ך': 'ל', 'ם': 'נ', 'ן': 'ס', 'ף': 'צ', 'ץ': 'ק'
+                }
+            },
+
+            // Milui (letter spellings)
+            milui: {
+                defaults: {
+                    'א': 'אלף', 'ב': 'בית', 'ג': 'גימל', 'ד': 'דלת', 'ה': 'הא',
+                    'ו': 'וו', 'ז': 'זין', 'ח': 'חית', 'ט': 'טית', 'י': 'יוד',
+                    'כ': 'כף', 'ך': 'כף', 'ל': 'למד', 'מ': 'מם', 'ם': 'מם',
+                    'נ': 'נון', 'ן': 'נון', 'ס': 'סמך', 'ע': 'עין', 'פ': 'פא',
+                    'ף': 'פא', 'צ': 'צדי', 'ץ': 'צדי', 'ק': 'קוף', 'ר': 'ריש',
+                    'ש': 'שין', 'ת': 'תו'
+                },
+                current: {} // Will be populated with defaults
+            },
+
+            // Initialize milui settings
+            init() {
+                this.milui.current = {...this.milui.defaults};
+            },
+
+            // Calculate methods
+            calculate(text, method) {
+                const letters = this.getLettersOnly(text);
+                
+                switch(method) {
+                    case 'hechrachi':
+                    case 'gadol':
+                    case 'siduri':
+                    case 'katan':
+                    case 'mispari':
+                        return this.simpleSum(letters, this.values[method]);
+                    
+                    case 'perati':
+                        return this.calculatePerati(letters);
+                    
+                    case 'meshulash':
+                        return this.calculateMeshulash(letters);
+                    
+                    case 'kidmi':
+                        return this.calculateKidmi(letters);
+                    
+                    case 'boneh':
+                        return this.calculateBoneh(letters);
+                    
+                    case 'shemi':
+                        return this.calculateShemi(letters);
+                    
+                    case 'neelam':
+                        return this.calculateNeelam(letters);
+                    
+                    case 'ofanim':
+                        return this.calculateOfanim(letters);
+                    
+                    case 'atbash':
+                    case 'albam':
+                    case 'achbi':
+                    case 'avgad':
+                        return this.calculateTransform(letters, method);
+                    
+                    case 'kolel':
+                        return this.calculateKolel(text);
+                    
+                    case 'musafi':
+                        return this.calculateMusafi(text);
+                    
+                    case 'klali':
+                        return this.calculateKlali(text);
+                    
+                    case 'haachor':
+                        return this.calculateHaachor(text);
+                    
+                    default:
+                        return 0;
+                }
+            },
+
+            getLettersOnly(text) {
+                return text.replace(/[^א-ת]/g, '');
+            },
+
+            simpleSum(letters, valueTable) {
+                let sum = 0;
+                for (let letter of letters) {
+                    sum += valueTable[letter] || 0;
+                }
+                return sum;
+            },
+
+            calculatePerati(letters) {
+                let sum = 0;
+                for (let letter of letters) {
+                    const val = this.values.hechrachi[letter] || 0;
+                    sum += val * val;
+                }
+                return sum;
+            },
+
+            calculateMeshulash(letters) {
+                let sum = 0;
+                for (let letter of letters) {
+                    const val = this.values.hechrachi[letter] || 0;
+                    sum += val * val * val;
+                }
+                return sum;
+            },
+
+            calculateKidmi(letters) {
+                let sum = 0;
+                for (let letter of letters) {
+                    const ordinal = this.values.siduri[letter] || 0;
+                    sum += (ordinal * (ordinal + 1)) / 2;
+                }
+                return sum;
+            },
+
+            calculateBoneh(letters) {
+                let sum = 0;
+                let running = 0;
+                for (let letter of letters) {
+                    running += this.values.hechrachi[letter] || 0;
+                    sum += running;
+                }
+                return sum;
+            },
+
+            calculateShemi(letters) {
+                let sum = 0;
+                for (let letter of letters) {
+                    const spelling = this.milui.current[letter];
+                    if (spelling) {
+                        for (let l of spelling) {
+                            sum += this.values.hechrachi[l] || 0;
+                        }
+                    }
+                }
+                return sum;
+            },
+
+            calculateNeelam(letters) {
+                let sum = 0;
+                for (let letter of letters) {
+                    const spelling = this.milui.current[letter];
+                    if (spelling && spelling.length > 1) {
+                        // Sum all but first letter
+                        for (let i = 1; i < spelling.length; i++) {
+                            sum += this.values.hechrachi[spelling[i]] || 0;
+                        }
+                    }
+                }
+                return sum;
+            },
+
+            calculateOfanim(letters) {
+                let sum = 0;
+                for (let letter of letters) {
+                    const spelling = this.milui.current[letter];
+                    if (spelling && spelling.length > 0) {
+                        // Add value of last letter
+                        sum += this.values.hechrachi[spelling[spelling.length - 1]] || 0;
+                    }
+                }
+                return sum;
+            },
+
+            calculateTransform(letters, transform) {
+                let transformed = '';
+                for (let letter of letters) {
+                    transformed += this.transforms[transform][letter] || letter;
+                }
+                return this.simpleSum(transformed, this.values.hechrachi);
+            },
+
+            calculateKolel(text) {
+                const words = text.trim().split(/\s+/);
+                const letterSum = this.simpleSum(this.getLettersOnly(text), this.values.hechrachi);
+                return letterSum + words.length;
+            },
+
+            calculateMusafi(text) {
+                const letters = this.getLettersOnly(text);
+                const letterSum = this.simpleSum(letters, this.values.hechrachi);
+                return letterSum + letters.length;
+            },
+
+            calculateKlali(text) {
+                const letterSum = this.simpleSum(this.getLettersOnly(text), this.values.hechrachi);
+                return letterSum * letterSum;
+            },
+
+            calculateHaachor(text) {
+                const letters = this.getLettersOnly(text);
+                let sum = 0;
+                for (let i = 0; i < letters.length; i++) {
+                    const letterValue = this.values.hechrachi[letters[i]] || 0;
+                    sum += letterValue * (letters.length - i);
+                }
+                return sum;
+            }
+        };
+
+        // Sample data
+        const sampleData = {
+            genesis: {
+                1: {
+                    1: {
+                        text_raw: "בְּרֵאשִׁית בָּרָא אֱלֹהִים אֵת הַשָּׁמַיִם וְאֵת הָאָרֶץ׃",
+                        text_no_trope: "בראשית ברא אלהים את השמים ואת הארץ",
+                        text_letters_only: "בראשית ברא אלהים את השמים ואת הארץ",
+                        tokens: [
+                            {t: "בראשית", n: 6},
+                            {t: "ברא", n: 3},
+                            {t: "אלהים", n: 5},
+                            {t: "את", n: 2},
+                            {t: "השמים", n: 5},
+                            {t: "ואת", n: 3},
+                            {t: "הארץ", n: 4}
+                        ]
+                    },
+                    2: {
+                        text_raw: "וְהָאָרֶץ הָיְתָה תֹהוּ וָבֹהוּ וְחֹשֶׁךְ עַל־פְּנֵי תְהוֹם וְרוּחַ אֱלֹהִים מְרַחֶפֶת עַל־פְּנֵי הַמָּיִם׃",
+                        text_no_trope: "והארץ היתה תהו ובהו וחשך על פני תהום ורוח אלהים מרחפת על פני המים",
+                        text_letters_only: "והארץ היתה תהו ובהו וחשך על פני תהום ורוח אלהים מרחפת על פני המים",
+                        tokens: [
+                            {t: "והארץ", n: 5},
+                            {t: "היתה", n: 4},
+                            {t: "תהו", n: 3},
+                            {t: "ובהו", n: 4},
+                            {t: "וחשך", n: 4},
+                            {t: "על", n: 2},
+                            {t: "פני", n: 3},
+                            {t: "תהום", n: 4},
+                            {t: "ורוח", n: 4},
+                            {t: "אלהים", n: 5},
+                            {t: "מרחפת", n: 5},
+                            {t: "על", n: 2},
+                            {t: "פני", n: 3},
+                            {t: "המים", n: 4}
+                        ]
+                    },
+                    3: {
+                        text_raw: "וַיֹּאמֶר אֱלֹהִים יְהִי אוֹר וַיְהִי־אוֹר׃",
+                        text_no_trope: "ויאמר אלהים יהי אור ויהי אור",
+                        text_letters_only: "ויאמר אלהים יהי אור ויהי אור",
+                        tokens: [
+                            {t: "ויאמר", n: 5},
+                            {t: "אלהים", n: 5},
+                            {t: "יהי", n: 3},
+                            {t: "אור", n: 3},
+                            {t: "ויהי", n: 4},
+                            {t: "אור", n: 3}
+                        ]
+                    }
+                }
+            }
+        };
+
+        // UI State
+        let currentBook = 'genesis';
+        let currentChapter = 1;
+        let currentVerse = 1;
+        let selectedTokens = new Set();
+        let multiSelectMode = false;
+
+        // Initialize
+        GematriaEngine.init();
+
+        // Render verse
+        function renderVerse() {
+            const verseData = sampleData[currentBook][currentChapter][currentVerse];
+            const verseDisplay = document.getElementById('verseDisplay');
+            const displayMode = document.querySelector('input[name="displayMode"]:checked').value;
+            
+            verseDisplay.innerHTML = '';
+            
+            verseData.tokens.forEach((token, index) => {
+                const span = document.createElement('span');
+                span.className = 'word-token';
+                span.dataset.index = index;
+                span.dataset.word = token.t;
+                
+                // Choose display text based on mode
+                if (displayMode === 'letters') {
+                    span.textContent = token.t;
+                } else if (displayMode === 'no-trope') {
+                    // For demo, use letters only
+                    span.textContent = token.t;
+                } else {
+                    // For demo, use letters only
+                    span.textContent = token.t;
+                }
+                
+                if (selectedTokens.has(index)) {
+                    span.classList.add('selected');
+                }
+                
+                span.onclick = (e) => selectWord(e, index);
+                verseDisplay.appendChild(span);
+            });
+            
+            updateResults();
+        }
+
+        // Select word
+        function selectWord(event, index) {
+            const multiSelect = document.getElementById('multiSelectMode').checked;
+            
+            if (event.ctrlKey || event.metaKey || multiSelect) {
+                // Toggle selection
+                if (selectedTokens.has(index)) {
+                    selectedTokens.delete(index);
+                } else {
+                    selectedTokens.add(index);
+                }
+            } else {
+                // Single selection
+                selectedTokens.clear();
+                selectedTokens.add(index);
+            }
+            
+            renderVerse();
+        }
+
+        // Clear selection
+        function clearSelection() {
+            selectedTokens.clear();
+            renderVerse();
+        }
+
+        // Select all
+        function selectAll() {
+            const verseData = sampleData[currentBook][currentChapter][currentVerse];
+            selectedTokens.clear();
+            for (let i = 0; i < verseData.tokens.length; i++) {
+                selectedTokens.add(i);
+            }
+            renderVerse();
+        }
+
+        // Update results
+        function updateResults() {
+            const verseData = sampleData[currentBook][currentChapter][currentVerse];
+            const checkedMethods = getCheckedMethods();
+            
+            // Get selected text or full verse
+            let text = '';
+            if (selectedTokens.size > 0) {
+                const selectedWords = [];
+                selectedTokens.forEach(index => {
+                    selectedWords.push(verseData.tokens[index].t);
+                });
+                text = selectedWords.join(' ');
+            } else {
+                text = verseData.text_letters_only;
+            }
+            
+            // Update selection table
+            const selectionResults = document.getElementById('selectionResults');
+            selectionResults.innerHTML = '';
+            
+            checkedMethods.forEach(method => {
+                const value = GematriaEngine.calculate(text, method);
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${getMethodLabel(method)}</td>
+                    <td class="value-cell">${value.toLocaleString()}</td>
+                `;
+                selectionResults.appendChild(row);
+            });
+            
+            // Update word details
+            const wordDetails = document.getElementById('wordDetails');
+            wordDetails.innerHTML = '';
+            
+            if (selectedTokens.size > 0) {
+                selectedTokens.forEach(index => {
+                    const token = verseData.tokens[index];
+                    const value = GematriaEngine.calculate(token.t, 'hechrachi');
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${token.t}</td>
+                        <td class="value-cell">${value.toLocaleString()}</td>
+                    `;
+                    wordDetails.appendChild(row);
+                });
+            }
+        }
+
+        // Get checked methods
+        function getCheckedMethods() {
+            const methods = [];
+            document.querySelectorAll('.method-checkbox input:checked').forEach(checkbox => {
+                methods.push(checkbox.value);
+            });
+            return methods;
+        }
+
+        // Get method label
+        function getMethodLabel(method) {
+            const labels = {
+                hechrachi: 'Hechrachi (Standard)',
+                gadol: 'Gadol (Large)',
+                siduri: 'Siduri (Ordinal)',
+                katan: 'Katan (Small)',
+                perati: 'Perati (Squared)',
+                meshulash: 'Meshulash (Cubed)',
+                kidmi: 'Kidmi (Triangular)',
+                mispari: 'Mispari (Spelled)',
+                boneh: 'Bone\'eh (Building)',
+                shemi: 'Shemi (Letter Names)',
+                neelam: 'Ne\'elam (Hidden)',
+                ofanim: 'Ofanim (Endings)',
+                atbash: 'Atbash',
+                albam: 'Albam',
+                achbi: 'Achbi',
+                avgad: 'Avgad',
+                kolel: 'Kolel (+Words)',
+                musafi: 'Musafi (+Letters)',
+                klali: 'Klali (Squared Sum)',
+                haachor: 'Ha\'achor (Positional)'
+            };
+            return labels[method] || method;
+        }
+
+        // Toggle method group
+        function toggleGroup(group, checked) {
+            const groupMap = {
+                standard: ['hechrachi', 'gadol', 'siduri', 'katan', 'perati', 'meshulash', 'kidmi', 'mispari', 'boneh'],
+                milui: ['shemi', 'neelam', 'ofanim'],
+                transform: ['atbash', 'albam', 'achbi', 'avgad'],
+                live: ['kolel', 'musafi', 'klali', 'haachor']
+            };
+            
+            const methods = groupMap[group] || [];
+            methods.forEach(method => {
+                const checkbox = document.querySelector(`input[value="${method}"]`);
+                if (checkbox) {
+                    checkbox.checked = checked;
+                }
+            });
+            
+            updateResults();
+        }
+
+        // Calculate live
+        function calculateLive() {
+            const input = document.getElementById('calculateInput').value;
+            if (!input) return;
+            
+            const checkedMethods = getCheckedMethods();
+            let resultsHtml = '<h4>Results for: ' + input + '</h4><table class="gematria-table"><tbody>';
+            
+            checkedMethods.forEach(method => {
+                const value = GematriaEngine.calculate(input, method);
+                resultsHtml += `
+                    <tr>
+                        <td>${getMethodLabel(method)}</td>
+                        <td class="value-cell">${value.toLocaleString()}</td>
+                    </tr>
+                `;
+            });
+            
+            resultsHtml += '</tbody></table>';
+            
+            // Display in a temporary div or alert
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = resultsHtml;
+            tempDiv.style.position = 'fixed';
+            tempDiv.style.top = '50%';
+            tempDiv.style.left = '50%';
+            tempDiv.style.transform = 'translate(-50%, -50%)';
+            tempDiv.style.background = 'white';
+            tempDiv.style.padding = '20px';
+            tempDiv.style.borderRadius = '10px';
+            tempDiv.style.boxShadow = '0 10px 30px rgba(0,0,0,0.3)';
+            tempDiv.style.zIndex = '2000';
+            tempDiv.style.maxHeight = '70vh';
+            tempDiv.style.overflow = 'auto';
+            
+            const closeBtn = document.createElement('button');
+            closeBtn.textContent = 'Close';
+            closeBtn.className = 'btn';
+            closeBtn.onclick = () => document.body.removeChild(tempDiv);
+            tempDiv.appendChild(closeBtn);
+            
+            document.body.appendChild(tempDiv);
+        }
+
+        // Milui dialog functions
+        function openMiluiDialog() {
+            document.getElementById('miluiModal').classList.add('active');
+        }
+
+        function closeMiluiDialog() {
+            document.getElementById('miluiModal').classList.remove('active');
+        }
+
+        function applyMiluiSettings() {
+            // Update milui settings based on selections
+            const radioGroups = {
+                'milui_alef': 'א',
+                'milui_bet': 'ב',
+                'milui_gimel': 'ג',
+                'milui_heh': 'ה',
+                'milui_vav': 'ו'
+            };
+            
+            for (let [groupName, letter] of Object.entries(radioGroups)) {
+                const selected = document.querySelector(`input[name="${groupName}"]:checked`);
+                if (selected) {
+                    GematriaEngine.milui.current[letter] = selected.value;
+                }
+            }
+            
+            closeMiluiDialog();
+            updateResults();
+        }
+
+        function resetMiluiDefaults() {
+            GematriaEngine.milui.current = {...GematriaEngine.milui.defaults};
+            // Reset radio buttons
+            document.querySelectorAll('.milui-choice input[type="radio"]:first-child').forEach(radio => {
+                radio.checked = true;
+            });
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            // Display mode changes
+            document.querySelectorAll('input[name="displayMode"]').forEach(radio => {
+                radio.addEventListener('change', renderVerse);
+            });
+            
+            // Method checkboxes
+            document.querySelectorAll('.method-checkbox input').forEach(checkbox => {
+                checkbox.addEventListener('change', updateResults);
+            });
+            
+            // Navigation controls
+            document.getElementById('verseSelect').addEventListener('change', (e) => {
+                currentVerse = parseInt(e.target.value);
+                renderVerse();
+            });
+            
+            // Initial render
+            renderVerse();
+        });
+
+        // Close modal when clicking outside
+        window.onclick = (event) => {
+            const modal = document.getElementById('miluiModal');
+            if (event.target === modal) {
+                closeMiluiDialog();
+            }
+        };
+    </script>
+</body>
+</html>
