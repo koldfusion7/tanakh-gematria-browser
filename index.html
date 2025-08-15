@@ -468,6 +468,9 @@
                             <option value="atbash">Atbash</option>
                             <option value="albam">Albam</option>
                             <option value="achbi">AchBi</option>
+                            <option value="atbach">AtBach</option>
+                            <option value="ayak_bachar">Ayak Bachar</option>
+                            <option value="achas_beta">Achas Beta</option>
                             <option value="avgad">Avgad</option>
                             <option value="reverse_avgad">Reverse Avgad</option>
                         </select>
@@ -552,6 +555,18 @@
                         <label class="method-checkbox">
                             <input type="checkbox" value="avgad"> Avgad
                         </label>
+                        <label class="method-checkbox">
+                            <input type="checkbox" value="reverse_avgad"> Reverse Avgad
+                        </label>
+                        <label class="method-checkbox">
+                            <input type="checkbox" value="atbach"> AtBach
+                        </label>
+                        <label class="method-checkbox">
+                            <input type="checkbox" value="ayak_bachar"> Ayak Bachar
+                        </label>
+                        <label class="method-checkbox">
+                            <input type="checkbox" value="achas_beta"> Achas Beta
+                        </label>
                     </div>
 
                     <div class="method-group">
@@ -590,8 +605,10 @@
                     <strong>Genesis Chapter 1, Verse 1</strong>
                 </div>
                 <div class="verse-display" id="verseDisplay">
-                    <!-- Verse will be rendered here -->
+                    <!-- Focus (selected or input) will be rendered here -->
                 </div>
+                <!-- Context display shows the original text context below the focus area -->
+                <div class="context-display" id="contextDisplay" style="margin-top: 15px; padding: 10px; background: #f9fafb; border-radius: 8px; min-height: 80px;"></div>
                 <div class="selection-controls">
                     <button class="btn" onclick="selectAll()">Select All</button>
                     <button class="btn" onclick="clearSelection()">Clear Selection</button>
@@ -726,11 +743,53 @@
                     'ס': 6, 'ע': 7, 'פ': 8, 'ף': 8, 'צ': 9, 'ץ': 9, 'ק': 1, 'ר': 2,
                     'ש': 3, 'ת': 4
                 },
+                /*
+                 * Mispar Mispari – values of letters based on the Hebrew names of the
+                 * standard numeric values.  The values below are taken directly from
+                 * the chart on TorahCalc’s “Explanations of Gematria Methods with
+                 * Charts” page【308932796231125†L173-L184】.  For example, the standard
+                 * value of Alef (א) is 1, and the Hebrew word for one is "אחד"
+                 * (Echad) which sums to 13 (1+8+4).  Likewise, Beis (ב) has a
+                 * standard value of 2 and the Hebrew word for two is "שנים" or
+                 * "שתים" – in the chart the value used is 760.  These values
+                 * ensure that our Mispar Mispari calculations match TorahCalc.
+                 */
                 mispari: {
-                    'א': 13, 'ב': 760, 'ג': 636, 'ד': 273, 'ה': 348, 'ו': 322, 'ז': 372, 'ח': 401, 'ט': 770,
-                    'י': 570, 'כ': 620, 'ך': 620, 'ל': 686, 'מ': 280, 'ם': 280, 'נ': 348, 'ן': 348,
-                    'ס': 720, 'ע': 422, 'פ': 446, 'ף': 446, 'צ': 720, 'ץ': 720, 'ק': 186, 'ר': 580,
-                    'ש': 930, 'ת': 1000
+                    /*
+                     * Mispar Mispari (Spelled) values.  These values are
+                     * derived from the spelled‑out names of the numbers 1–22
+                     * (e.g. “אחד” = 13) and match the table on TorahCalc
+                     *【308932796231125†L173-L184】.  Note that these differ from
+                     * some earlier drafts of this program; see the chart
+                     * lines 177–184 on the TorahCalc page for confirmation.
+                     */
+                    'א': 13,
+                    'ב': 760,
+                    'ג': 636,
+                    'ד': 273,
+                    'ה': 348,
+                    'ו': 600,
+                    'ז': 372,
+                    'ח': 401,
+                    'ט': 770,
+                    'י': 570,
+                    // Kaf and final Kaf share the same value
+                    'כ': 620, 'ך': 620,
+                    'ל': 686,
+                    // Mem and final Mem
+                    'מ': 323, 'ם': 323,
+                    // Nun and final Nun
+                    'נ': 408, 'ן': 408,
+                    'ס': 660,
+                    'ע': 422,
+                    // Pe and final Pe
+                    'פ': 446, 'ף': 446,
+                    // Tzadi and final Tzadi
+                    'צ': 820, 'ץ': 820,
+                    'ק': 46,
+                    'ר': 501,
+                    'ש': 1083,
+                    'ת': 720
                 }
             },
 
@@ -767,13 +826,63 @@
 
             // Milui (letter spellings)
             milui: {
+                /*
+                 * Default spellings for each Hebrew letter’s name used for
+                 * Mispar Shemi/Ne’elam/Ofanim.  These spellings align with the
+                 * names shown on TorahCalc【308932796231125†L94-L103】.  Final letters
+                 * reuse the same spelling as their regular form.  Users can
+                 * override these via the Milui configuration dialog.
+                 */
                 defaults: {
-                    'א': 'אלף', 'ב': 'בית', 'ג': 'גימל', 'ד': 'דלת', 'ה': 'הא',
-                    'ו': 'וו', 'ז': 'זין', 'ח': 'חית', 'ט': 'טית', 'י': 'יוד',
-                    'כ': 'כף', 'ך': 'כף', 'ל': 'למד', 'מ': 'מם', 'ם': 'מם',
-                    'נ': 'נון', 'ן': 'נון', 'ס': 'סמך', 'ע': 'עין', 'פ': 'פא',
-                    'ף': 'פא', 'צ': 'צדי', 'ץ': 'צדי', 'ק': 'קוף', 'ר': 'ריש',
-                    'ש': 'שין', 'ת': 'תו'
+                    'א': 'אלף',
+                    'ב': 'בית',
+                    'ג': 'גימל',
+                    'ד': 'דלת',
+                    'ה': 'הא',
+                    'ו': 'וו',
+                    'ז': 'זין',
+                    'ח': 'חית',
+                    'ט': 'טית',
+                    'י': 'יוד',
+                    'כ': 'כף', 'ך': 'כף',
+                    'ל': 'למד',
+                    'מ': 'מם', 'ם': 'מם',
+                    'נ': 'נון', 'ן': 'נון',
+                    'ס': 'סמך',
+                    'ע': 'עין',
+                    'פ': 'פא', 'ף': 'פא',
+                    'צ': 'צדי', 'ץ': 'צדי',
+                    'ק': 'קוף',
+                    'ר': 'ריש',
+                    'ש': 'שן',
+                    'ת': 'תו'
+                },
+                // AtBach – three groups of nine (with finals) reversed within each group
+                atbach: {
+                    // Group 1: Alef ↔ Tet, Bet ↔ Chet, Gimel ↔ Zayin, Dalet ↔ Vav, Heh unchanged
+                    'א': 'ט', 'ב': 'ח', 'ג': 'ז', 'ד': 'ו', 'ה': 'ה', 'ו': 'ד', 'ז': 'ג', 'ח': 'ב', 'ט': 'א',
+                    // Group 2 (standard letters only): Yud ↔ Tsadi, Kaf ↔ Pe, Lamed ↔ Ayin, Mem ↔ Samech, Nun unchanged
+                    'י': 'צ', 'כ': 'פ', 'ל': 'ע', 'מ': 'ס', 'נ': 'נ', 'ס': 'מ', 'ע': 'ל', 'פ': 'כ', 'צ': 'י',
+                    // Group 3 (including final forms): Qof ↔ Final Tsadi, Resh ↔ Final Pe, Shin ↔ Final Nun, Tav ↔ Final Mem, Final Kaf unchanged
+                    'ק': 'ץ', 'ר': 'ף', 'ש': 'ן', 'ת': 'ם', 'ך': 'ך', 'ם': 'ת', 'ן': 'ש', 'ף': 'ר', 'ץ': 'ק'
+                },
+                // Ayak Bachar – three groups of nine with cyclic mapping 1→2→3→1
+                ayak_bachar: {
+                    // Group1→Group2
+                    'א': 'י', 'ב': 'כ', 'ג': 'ל', 'ד': 'מ', 'ה': 'נ', 'ו': 'ס', 'ז': 'ע', 'ח': 'פ', 'ט': 'צ',
+                    // Group2→Group3
+                    'י': 'ק', 'כ': 'ר', 'ך': 'ר', 'ל': 'ש', 'מ': 'ת', 'ם': 'ת', 'נ': 'ך', 'ן': 'ך', 'ס': 'ם', 'ע': 'ן', 'פ': 'ף', 'ף': 'ף', 'צ': 'ץ', 'ץ': 'ץ',
+                    // Group3→Group1
+                    'ק': 'א', 'ר': 'ב', 'ש': 'ג', 'ת': 'ד', 'ך': 'ה', 'ם': 'ו', 'ן': 'ז', 'ף': 'ח', 'ץ': 'ט'
+                },
+                // Achas Beta – three groups (7,7,8) cyclic mapping with Tav unchanged
+                achas_beta: {
+                    // Group1→Group2
+                    'א': 'ח', 'ב': 'ט', 'ג': 'י', 'ד': 'כ', 'ה': 'ל', 'ו': 'מ', 'ז': 'נ',
+                    // Group2→Group3
+                    'ח': 'ס', 'ט': 'ע', 'י': 'פ', 'כ': 'צ', 'ך': 'צ', 'ל': 'ק', 'מ': 'ר', 'ם': 'ר', 'נ': 'ש', 'ן': 'ש',
+                    // Group3→Group1 (except Tav unchanged)
+                    'ס': 'א', 'ע': 'ב', 'פ': 'ג', 'ף': 'ג', 'צ': 'ד', 'ץ': 'ד', 'ק': 'ה', 'ר': 'ו', 'ש': 'ז', 'ת': 'ת'
                 },
                 current: {} // Will be populated with defaults
             },
@@ -819,6 +928,9 @@
                     case 'atbash':
                     case 'albam':
                     case 'achbi':
+                    case 'atbach':
+                    case 'ayak_bachar':
+                    case 'achas_beta':
                     case 'avgad':
                     case 'reverse_avgad':
                         return this.calculateTransform(letters, method);
@@ -870,11 +982,47 @@
                 return sum;
             },
 
+            /**
+             * Mispar Kidmi – cumulative sums of Hechrachi values up to each letter.
+             * This implementation mirrors the definition used on TorahCalc: for each
+             * Hebrew letter, add the sum of all standard values from Alef up to that
+             * letter. Final forms are normalised to their base letter for the lookup.
+             */
             calculateKidmi(letters) {
+                const cumMap = {
+                    'א': 1,
+                    'ב': 3,
+                    'ג': 6,
+                    'ד': 10,
+                    'ה': 15,
+                    'ו': 21,
+                    'ז': 28,
+                    'ח': 36,
+                    'ט': 45,
+                    'י': 55,
+                    'כ': 75, 'ך': 75,
+                    'ל': 105,
+                    'מ': 145, 'ם': 145,
+                    'נ': 195, 'ן': 195,
+                    'ס': 255,
+                    'ע': 325,
+                    'פ': 405, 'ף': 405,
+                    'צ': 495, 'ץ': 495,
+                    'ק': 595,
+                    'ר': 795,
+                    'ש': 1095,
+                    'ת': 1495
+                };
                 let sum = 0;
-                for (let letter of letters) {
-                    const ordinal = this.values.siduri[letter] || 0;
-                    sum += (ordinal * (ordinal + 1)) / 2;
+                for (const ch of letters) {
+                    // Normalise final letters to their base form for the cumulative lookup
+                    let base = ch;
+                    if (ch === 'ך') base = 'כ';
+                    if (ch === 'ם') base = 'מ';
+                    if (ch === 'ן') base = 'נ';
+                    if (ch === 'ף') base = 'פ';
+                    if (ch === 'ץ') base = 'צ';
+                    sum += cumMap[base] || 0;
                 }
                 return sum;
             },
@@ -929,17 +1077,50 @@
             },
 
             calculateTransform(letters, transform) {
-                // Special handling for reverse_avgad: use reverseAvgadMap
-                let transformed = '';
+                /*
+                 * Letter‑substitution ciphers.  For most transforms we simply
+                 * substitute the characters via the appropriate mapping and
+                 * then sum the resulting string using the standard (Hechrachi)
+                 * values.  Two ciphers – AtBach and Ayak Bachar – require
+                 * calculating the Mispar Gadol of the transformed string so
+                 * that any final letters take their elevated values.  The
+                 * Achas Beta cipher uses the standard values.  Reverse Avgad
+                 * uses its own dedicated map.  All other transforms (Atbash,
+                 * Albam, AchBi, Avgad) use the mappings defined in
+                 * GematriaEngine.transforms.
+                 */
+                // Reverse Avgad uses a separate map
                 if (transform === 'reverse_avgad') {
+                    let transformed = '';
                     for (let letter of letters) {
                         transformed += this.reverseAvgadMap[letter] || letter;
                     }
-                } else {
+                    return this.simpleSum(transformed, this.values.hechrachi);
+                }
+                // AtBach and Ayak Bachar: use special milui mappings and
+                // compute the Mispar Gadol of the result
+                if (transform === 'atbach' || transform === 'ayak_bachar') {
+                    let transformed = '';
+                    const map = this.milui[transform];
                     for (let letter of letters) {
-                        const map = this.transforms[transform];
                         transformed += (map && map[letter]) ? map[letter] : letter;
                     }
+                    return this.simpleSum(transformed, this.values.gadol);
+                }
+                // Achas Beta: use milui mapping and standard values
+                if (transform === 'achas_beta') {
+                    let transformed = '';
+                    const map = this.milui[transform];
+                    for (let letter of letters) {
+                        transformed += (map && map[letter]) ? map[letter] : letter;
+                    }
+                    return this.simpleSum(transformed, this.values.hechrachi);
+                }
+                // For Atbash, Albam, AchBi, Avgad: use the transforms table
+                let transformed = '';
+                const map = this.transforms[transform];
+                for (let letter of letters) {
+                    transformed += (map && map[letter]) ? map[letter] : letter;
                 }
                 return this.simpleSum(transformed, this.values.hechrachi);
             },
@@ -982,19 +1163,28 @@
              */
             applyTransform(text, transformName) {
                 if (!text || !transformName || transformName === 'none') return text;
-                let result = '';
-                // Remove non-Hebrew characters for transformation
+                // Remove non‑Hebrew characters for transformation
                 const letters = this.getLettersOnly(text);
-                for (let i = 0; i < letters.length; i++) {
-                    const ch = letters[i];
-                    let newChar;
-                    if (transformName === 'reverse_avgad') {
-                        newChar = this.reverseAvgadMap[ch] || ch;
-                    } else {
-                        const map = this.transforms[transformName];
-                        newChar = map && map[ch] ? map[ch] : ch;
+                let result = '';
+                if (transformName === 'reverse_avgad') {
+                    // Reverse Avgad uses its own mapping
+                    for (const ch of letters) {
+                        result += this.reverseAvgadMap[ch] || ch;
                     }
-                    result += newChar;
+                    return result;
+                }
+                // AtBach, Ayak Bachar and Achas Beta use the milui mapping tables
+                if (transformName === 'atbach' || transformName === 'ayak_bachar' || transformName === 'achas_beta') {
+                    const map = this.milui[transformName];
+                    for (const ch of letters) {
+                        result += (map && map[ch]) ? map[ch] : ch;
+                    }
+                    return result;
+                }
+                // For Atbash, Albam, AchBi, Avgad: use the transforms table
+                const map = this.transforms[transformName];
+                for (const ch of letters) {
+                    result += (map && map[ch]) ? map[ch] : ch;
                 }
                 return result;
             }
@@ -1072,9 +1262,23 @@
         function renderVerse() {
             const verseData = sampleData[currentBook][currentChapter][currentVerse];
             const verseDisplay = document.getElementById('verseDisplay');
+            const contextDiv = document.getElementById('contextDisplay');
             const displayMode = document.querySelector('input[name="displayMode"]:checked').value;
             
             verseDisplay.innerHTML = '';
+            // Update context display with the original text according to display mode
+            if (contextDiv) {
+                let contextText;
+                if (displayMode === 'letters') {
+                    contextText = verseData.text_letters_only;
+                } else if (displayMode === 'no-trope') {
+                    contextText = verseData.text_no_trope || verseData.text_letters_only;
+                } else {
+                    contextText = verseData.text_raw || verseData.text_no_trope || verseData.text_letters_only;
+                }
+                // Trim and normalise spaces
+                contextDiv.textContent = contextText;
+            }
             
             verseData.tokens.forEach((token, index) => {
                 const span = document.createElement('span');
@@ -1163,13 +1367,30 @@
             } else {
                 text = verseData.text_letters_only;
             }
+            // Apply transformation to the text if one is selected
+            let calcText = text;
+            if (currentTransform && currentTransform !== 'none') {
+                calcText = GematriaEngine.applyTransform(text, currentTransform);
+            }
             
             // Update selection table
             const selectionResults = document.getElementById('selectionResults');
             selectionResults.innerHTML = '';
             
             checkedMethods.forEach(method => {
-                const value = GematriaEngine.calculate(text, method);
+                // Determine which text to use for this method.  When a
+                // transformation is selected we want the standard and milui
+                // methods to run on the transformed text (calcText), but the
+                // transformation methods themselves (e.g. Atbash, Albam) should
+                // operate on the original text to avoid applying the cipher
+                // twice.  Live methods always use the transformed text since
+                // they derive from Hechrachi sums.
+                let inputForMethod = calcText;
+                const transformMethods = ['atbash','albam','achbi','avgad','atbach','ayak_bachar','achas_beta','reverse_avgad'];
+                if (currentTransform && currentTransform !== 'none' && transformMethods.includes(method)) {
+                    inputForMethod = text;
+                }
+                const value = GematriaEngine.calculate(inputForMethod, method);
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${getMethodLabel(method)}</td>
@@ -1185,10 +1406,15 @@
             if (selectedTokens.size > 0) {
                 selectedTokens.forEach(index => {
                     const token = verseData.tokens[index];
-                    const value = GematriaEngine.calculate(token.t, 'hechrachi');
+                    // Apply transform to individual word for display and calculation
+                    let displayWord = token.t;
+                    if (currentTransform && currentTransform !== 'none') {
+                        displayWord = GematriaEngine.applyTransform(token.t, currentTransform);
+                    }
+                    const value = GematriaEngine.calculate(displayWord, 'hechrachi');
                     const row = document.createElement('tr');
                     row.innerHTML = `
-                        <td>${token.t}</td>
+                        <td>${displayWord}</td>
                         <td class="value-cell">${value.toLocaleString()}</td>
                     `;
                     wordDetails.appendChild(row);
@@ -1224,6 +1450,9 @@
                 albam: 'Albam',
                 achbi: 'Achbi',
                 avgad: 'Avgad',
+                atbach: 'AtBach',
+                ayak_bachar: 'Ayak Bachar',
+                achas_beta: 'Achas Beta',
                 reverse_avgad: 'Reverse Avgad',
                 kolel: 'Kolel (+Words)',
                 musafi: 'Musafi (+Letters)',
@@ -1238,7 +1467,8 @@
             const groupMap = {
                 standard: ['hechrachi', 'gadol', 'siduri', 'katan', 'perati', 'meshulash', 'kidmi', 'mispari', 'boneh'],
                 milui: ['shemi', 'neelam', 'ofanim'],
-                transform: ['atbash', 'albam', 'achbi', 'avgad'],
+                // Transformation methods including additional temurot
+                transform: ['atbash', 'albam', 'achbi', 'atbach', 'ayak_bachar', 'achas_beta', 'avgad', 'reverse_avgad'],
                 live: ['kolel', 'musafi', 'klali', 'haachor']
             };
             
@@ -1313,6 +1543,11 @@
                 span.textContent = displayWord;
                 verseDisplay.appendChild(span);
             });
+            // Update context display with the raw input text
+            const contextDiv = document.getElementById('contextDisplay');
+            if (contextDiv) {
+                contextDiv.textContent = input;
+            }
         }
 
         /**
